@@ -1,0 +1,495 @@
+<aui:button type="button" cssClass="btn btn-primary" name="reset"   value="lbl.btn.reset" onClick="this.form.reset();"/>
+
+
+
+<%@include file="/WEB-INF/jsp/init.jsp" %>
+
+
+<%
+   if(!themeDisplay.getPermissionChecker().isOmniadmin() && themeDisplay.isSignedIn())
+{ 
+	PortletURL actionURL=renderResponse.createActionURL();
+	actionURL.setParameter("action", "updatePasswordPolicy");
+	long policyId=Long.valueOf(request.getAttribute("policyId").toString());
+	FFCPasswordPolicy ffcPasswordPolicy=null;
+	try{
+		
+		long tenantId=Long.valueOf(Integer.toString(FFCPortletUtil.getTenantId(themeDisplay)));
+		ffcPasswordPolicy=FFCPasswordPolicyLocalServiceUtil.findByTenantId(tenantId);
+	}catch(Exception e){
+		
+	}
+%>
+<liferay-ui:success key="policy.configured.success" message="policy.configured.success"/>
+<liferay-ui:error key="policy.configured.error" message="policy.configured.error"/>
+
+<liferay-ui:success key="password.scheduler.start.success" message="password.scheduler.start.success"/>
+<liferay-ui:error key="password.scheduler.start.error" message="password.scheduler.start.error"/>
+
+<liferay-ui:success key="password.scheduler.stop.success" message="password.scheduler.stop.success"/>
+<liferay-ui:error key="password.scheduler.stop.error" message="password.scheduler.stop.error"/>
+<liferay-ui:error key="lbl.validation.password.warning.should.less.expire" message="lbl.validation.password.warning.should.less.expire"/>
+<liferay-ui:error key="lbl.validation.password.notify.one.should.less.expire" message="lbl.validation.password.notify.one.should.less.expire"/>
+<liferay-ui:error key="lbl.validation.password.notify.two.should.less.notify.one" message="lbl.validation.password.notify.two.should.less.notify.one"/>
+<liferay-ui:error key="lbl.validation.password.notify.three.should.less.notify.two" message="lbl.validation.password.notify.three.should.less.notify.two"/>
+
+
+
+
+<aui:form action="<%=actionURL.toString() %>" method="post">
+    <aui:input name="passwordCron" type="hidden" value="0 0/2 * * * ? *"/>
+    <aui:input type="hidden" name="cmd" value=""/>
+    <%
+      if(Validator.isNotNull(ffcPasswordPolicy)){
+    	    long passwordExpireMaxAge=ffcPasswordPolicy.getMaxPasswordExpire();
+    		long passwordExpireWarningTime=ffcPasswordPolicy.getMaxPasswordExpireWarning();
+    		long passwordExpireFirstNotify=ffcPasswordPolicy.getFirstNotification();
+    		long passwordExpireSecondNotify=ffcPasswordPolicy.getSecondNotification();
+    		long passwordExpireThirdNotify=ffcPasswordPolicy.getThirdNotification();
+    		String fromAddress=ffcPasswordPolicy.getSendEmailAddress();
+    		String ccAddress=ffcPasswordPolicy.getCcEmailAddress();
+      %>
+    
+    <aui:input name="policyId"  type="hidden" value="<%=ffcPasswordPolicy.getPolicyId() %>"/>  
+    <aui:input type="text" name="policyName" cssClass="policyName" label="policy.name" value="<%=ffcPasswordPolicy.getPolicyName() %>" >
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+    </aui:input>
+    <aui:input name="passwordExpireMaxAge" cssClass="passwordExpireMaxAge" value="<%=passwordExpireMaxAge %>" label="password.expire.max.age" >
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+	   <aui:validator name="min">1</aui:validator>
+	   
+
+    </aui:input>
+    <aui:input name="passwordExpireWarningTime" cssClass="passwordExpireWarningTime" value="<%=passwordExpireWarningTime %>" label="password.expire.warning.time">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+       <aui:validator name="min">1</aui:validator>
+      
+    </aui:input>
+     <aui:input name="passwordExpireFirstNotify"   cssClass="passwordExpireFirstNotify" value="<%=passwordExpireFirstNotify %>" label="password.expire.notification.one">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+       <aui:validator name="min">1</aui:validator>
+       
+    </aui:input>
+    <aui:input name="passwordExpireSecondNotify"   cssClass="passwordExpireSecondNotify" value="<%=passwordExpireSecondNotify %>" label="password.expire.notification.two">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+       <aui:validator name="min">1</aui:validator>
+       
+    </aui:input>
+    <aui:input name="passwordExpireThirdNotify"  cssClass="passwordExpireThirdNotify" value="<%=passwordExpireThirdNotify %>" label="password.expire.notification.third">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+       <aui:validator name="min">1</aui:validator>
+   
+    </aui:input>
+  <%--   <aui:input name="tempPasswordExpire" value="<%=ffcPasswordPolicy.getTempPasswordExpire() %>" label="temp.password.expire">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+       <aui:validator name="min">1</aui:validator>
+    </aui:input> --%>
+    <aui:input type="hidden" name="lockoutMaxAttempt"   cssClass="lockoutMaxAttempt"  value="<%=ffcPasswordPolicy.getLockoutMaxAttempt() %>" label="user.lockout.max.attempt">
+       
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+       <aui:validator name="min">1</aui:validator>
+    </aui:input>
+    <aui:input name="fromAddress" cssClass="fromAddress" value="<%=fromAddress %>" label="email.sender">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="email" errorMessage="brochure.validate.invalid.email"/>
+    </aui:input>
+    <aui:input name="ccAddress"   cssClass="ccAddress" value="<%=ccAddress %>" label="email.cc">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="email" errorMessage="brochure.validate.invalid.email"/>
+    </aui:input>  
+      <%}else{%>
+    <aui:input name="policyId" cssClass="policyId" type="hidden" value="0"/>
+    <aui:input type="text" name="policyName" label="policy.name">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+    </aui:input> 
+    <aui:input name="passwordExpireMaxAge" cssClass="passwordExpireMaxAge" label="password.expire.max.age">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+	   <aui:validator name="min">1</aui:validator>
+    </aui:input>
+    <aui:input name="passwordExpireWarningTime" cssClass="passwordExpireWarningTime" label="password.expire.warning.time">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+       <aui:validator name="min">1</aui:validator>
+    </aui:input>
+     <aui:input name="passwordExpireFirstNotify" cssClass="passwordExpireFirstNotify"  label="password.expire.notification.one">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+       <aui:validator name="min">1</aui:validator>
+    </aui:input>
+    <aui:input name="passwordExpireSecondNotify"  cssClass="passwordExpireSecondNotify" label="password.expire.notification.two">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+       <aui:validator name="min">1</aui:validator>
+    </aui:input>
+    <aui:input name="passwordExpireThirdNotify" cssClass="passwordExpireThirdNotify" label="password.expire.notification.third">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+       <aui:validator name="min">1</aui:validator>
+    </aui:input>
+    <%--  <aui:input name="tempPasswordExpire" label="temp.password.expire">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+       <aui:validator name="min">1</aui:validator>
+     </aui:input> --%>
+     <aui:input type="hidden" name="lockoutMaxAttempt" label="user.lockout.max.attempt">
+       
+       <aui:validator name="digits" errorMessage="lbl.validation.numeric"/>
+       <aui:validator name="min">1</aui:validator>
+    </aui:input>
+    <aui:input name="fromAddress"  cssClass="fromAddress" label="email.sender">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="email" errorMessage="brochure.validate.invalid.email"/>
+    </aui:input>
+    <aui:input name="ccAddress"  cssClass="ccAddress" label="email.cc">
+       <aui:validator name="required" errorMessage="lbl.validation.required"/>
+       <aui:validator name="email" errorMessage="brochure.validate.invalid.email"/>
+    </aui:input>
+	
+      <%}
+    %> 
+    
+    
+     <%if(Validator.isNull(ffcPasswordPolicy)){ %>
+		<aui:button type="button" cssClass="btn btn-primary" name="submit" value="lbl.btn.submit" onClick="return doSubmit()"/>
+	<%}else{ %>
+		<aui:button type="button" cssClass="btn btn-primary" name="update"  value="lbl.btn.update" onClick="return doSubmit()"/>
+		<aui:button type="button" cssClass="btn btn-primary" name="start"   value="lbl.btn.start" onClick="return doSubmit()"/>
+		
+		<aui:button type="button" cssClass="btn btn-primary" name="reset"   value="lbl.btn.reset" onClick="clearForm(this.form);"/>
+	
+	<%} %> 
+</aui:form>
+<%}
+
+else {%>
+
+<liferay-ui:message key="liferay.admin.permission.denied"/> 
+
+<%} %>
+
+
+
+
+
+<script>
+
+$(document).ready(function(){
+	
+	
+	$(".passwordExpireMaxAge").on("keyup",function(e)
+	   {
+		  
+	      var v1=$(".passwordExpireMaxAge").val();
+		 
+	      var charCode = e.which || e.keyCode || e.charCode;
+	      if (charCode < 31 || (charCode >= 48 && charCode <= 57 ) || (charCode >= 96 && charCode <= 105 ))
+		 {
+			 return true;
+		 }
+		  else
+		  {
+		   alert("enter numeric only");
+			 $(".passwordExpireMaxAge").val("");
+				return false;
+		  }
+		
+	    });
+	
+
+	$(".passwordExpireMaxAge").on("focusout",function(e)
+	{
+		  var v1=$(".passwordExpireMaxAge").val();
+		  var v2=$(".passwordExpireWarningTime").val();
+		 
+		 if(v1!="" && v1<=v2)
+		  {
+			alert(' f passwordExpireMaxAge cant be small then passwordExpireWarningTime');
+			$(".passwordExpireMaxAge").val("");
+			return false;
+		  }
+	});
+	
+	
+
+	
+	
+	  
+	   $(".passwordExpireWarningTime").on("keyup",function(e)
+	   {
+		
+	   
+	      var v2=$(".passwordExpireWarningTime").val();		
+	       var charCode = e.which || e.keyCode || e.charCode;
+	      if (charCode < 31 || (charCode >= 48 && charCode <= 57 ) || (charCode >= 96 && charCode <= 105 ))
+		 {
+			return true;
+		 }
+		  else
+		  {
+			   alert("enter numeric only");
+			   $(".passwordExpireWarningTime").val("");
+				return false; 
+		  }
+	    });
+		
+		
+		$(".passwordExpireWarningTime").on("focusout",function()
+	    {
+		  
+		   var v1=$(".passwordExpireMaxAge").val();
+		   var v2=$(".passwordExpireWarningTime").val();
+		   var v3=$(".passwordExpireFirstNotify").val();
+		 
+		 if(v2!="" && v2>=v1)
+		  {
+			alert('passwordExpireWarningTime cant be greater then or equal to passwordExpireMaxAge');
+			$(".passwordExpireWarningTime").val("");
+			return false;
+		  }
+		 
+		 
+		 if(v2!="" && v2>=v1)
+		  {
+			
+			alert('Password Expire cant be greater then or equal to day age');
+			$(".passwordExpireWarningTime").val("");
+			//return false;
+		  }
+		 
+		  
+		  else if(v2!="" && v2 <= v3)
+		  {
+			  
+			  alert("passwordExpireWarningTime cant be less then Password expire first notification");
+			  $(".passwordExpireWarningTime").val("");
+			  return false;
+		  }
+		  else{
+			  return true;
+		  }
+	});
+		
+
+		
+		$(".passwordExpireFirstNotify").on("keyup",function(e){
+		   var v2=$(".passwordExpireFirstNotify").val();
+		   var charCode = e.which || e.keyCode || e.charCode;
+	       if (charCode < 31 || (charCode >= 48 && charCode <= 57 ) || (charCode >= 96 && charCode <= 105 ))
+		    {
+			
+				return true;
+		    }
+
+		   else{
+		  			 alert("enter numeric only");
+			          $(".passwordExpireFirstNotify").val("");
+		       }
+		 
+	      });
+		
+		
+		$(".passwordExpireFirstNotify").on("focusout",function()
+	{
+		   var v1=$(".passwordExpireWarningTime").val();
+		   var v2=$(".passwordExpireFirstNotify").val();
+		   var v3=$(".passwordExpireSecondNotify").val();
+		 
+		 if(v2!="" && v2>=v1)
+		  {
+			alert('Password Expire cant be greater then or equal to passwordExpireWarningTime');
+			$(".passwordExpireFirstNotify").val("");
+			return false;
+		  }
+		 
+		  
+		  else if(v2!="" && v2 <= v3)
+		  {
+			  alert("passwordExpireWarningTime cant be less then Password expire first notification");
+			  $(".passwordExpireFirstNotify").val("");
+			  return false;
+		  }
+		  else{
+			  return true;
+		  }
+	});
+		
+		
+		
+		
+		
+		
+
+		
+		
+		$(".passwordExpireSecondNotify").on("keyup",function(e){
+			
+		
+		 var v2=$(".passwordExpireSecondNotify").val();
+		
+		  var charCode = (v2.which) ? v2.which : e.keyCode
+	       if (charCode < 31 || (charCode >= 48 && charCode <= 57 ) || (charCode >= 96 && charCode <= 105 ))
+		   {
+			   return true;
+		   }
+			
+		else{
+		        alert('enter numeric only');
+			   $(".passwordExpireSecondNotify").val("");
+			   return false;
+		}
+	    });
+		
+		
+		
+		
+		$(".passwordExpireSecondNotify").on("focusout",function()
+	{
+		var v1=$(".passwordExpireFirstNotify").val();
+		 var v2=$(".passwordExpireSecondNotify").val();
+		 var v3=$(".passwordExpireThirdNotify").val();
+		 
+		 if(v2!="" && v2>=v1)
+		  {
+			alert('passwordExpireSecondNotify cant be greater then or equal to passwordExpireFirstNotify');
+			$(".passwordExpireSecondNotify").val("");
+			return false;
+		  }
+		 
+		  
+		  else if(v2!="" && v2 <= v3)
+		  {
+			  alert("passwordExpireSecondNotify cant be less then passwordExpireThirdNotify");
+			  $(".passwordExpireSecondNotify").val("");
+			  return false;
+		  }
+		  else{
+			  return true;
+		  }
+	});
+		
+
+		$(".passwordExpireThirdNotify").on("keyup",function(e){
+		
+		     var charCode = (v2.which) ? v2.which : e.keyCode
+	       if (charCode < 31 || (charCode >= 48 && charCode <= 57 ) || (charCode >= 96 && charCode <= 105 ))
+			{
+			   return true;
+			}
+			else
+			{
+		      alert('enter numeric only');
+			  $(".passwordExpireThirdNotify").val("");
+		      return false;
+		    }
+
+	});
+	
+	$(".passwordExpireThirdNotify").on("focusout",function()
+	{
+		var v1=$(".passwordExpireSecondNotify").val();
+		 var v2=$(".passwordExpireThirdNotify").val();
+		 
+		 if(v2!="" && v2>=v1)
+		  {
+			alert('Password Expire cant be greater then or equal to passwordExpireSecondNotify');
+			$(".passwordExpireThirdNotify").val("");
+			return false;
+		  }
+		 
+		  else{
+			  return true;
+		  }
+	});
+		
+});
+</script>
+
+<script type = "text/javascript">
+    function ValidateEmail(email) {
+        var expr = /^([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$/;
+        return expr.test(email);
+    };
+    $(".fromAddress").on("focusout", function () {
+        if (!ValidateEmail($(".fromAddress").val())) {
+            alert("Invalid email address.");
+        }
+        else {
+            
+        }
+    });
+	
+    $(".ccAddress").on("focusout", function () {
+        if (!ValidateEmail($(".ccAddress").val())) {
+            alert("Invalid email address.");
+        }
+        else {
+           
+        }
+    });
+    
+</script>
+
+<script type="text/javascript">
+
+function doSubmit()
+{
+	
+	if($(".policyName").val()=="")
+	{
+		alert("policyName is empty");
+		$(".policyName").focus();
+		return false;
+	}
+	
+	else if($(".passwordExpireMaxAge").val()=="")
+	{
+		 $(".passwordExpireMaxAge").focus();
+		return false; 
+		
+	}
+	
+	else if($(".passwordExpireWarningTime").val()=="")
+	{
+		 $(".passwordExpireWarningTime").focus();
+		return false;
+	}
+	
+	else if($(".passwordExpireFirstNotify").val()=="")
+	{
+		 $(".passwordExpireFirstNotify").focus();
+		return false;
+	}
+	
+	else if($(".passwordExpireSecondNotify").val()=="")
+	{
+		 $(".passwordExpireSecondNotify").focus();
+		return false;
+	}
+	else if($(".passwordExpireThirdNotify").val()=="")
+	{
+		 $(".passwordExpireThirdNotify").focus();
+		return false;
+	}
+	
+	
+	else if($(".ccAddressval").val()=="") {
+		alert("test");
+		 $(".ccAddress").focus();
+		 return false;
+	}
+	
+	else
+	{
+		return true;
+	}
+	
+	
+}
+</script>
